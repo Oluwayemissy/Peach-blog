@@ -15,7 +15,18 @@ const postQueries = {
  `,
 
 getAllPosts:
-    `SELECT * FROM posts`,
+    `SELECT * 
+    FROM posts
+    WHERE (title ILIKE $1 OR $1 IS NULL)
+    OFFSET $2
+    LIMIT $3
+`,
+
+getAllPostsCount:
+    `SELECT COUNT(id)
+    FROM posts
+    WHERE (title ILIKE $1 OR $1 IS NULL)
+    `,
 
 
 getUserById:`
@@ -28,10 +39,14 @@ getLatestPosts:`
        title,
        post,
        cover,
-       subtitle
+       subtitle,
+       user_id,
+       to_char(created_at, 'Month, DD')
     FROM 
        posts
+    WHERE (title ILIKE $1 OR $1 IS NULL)
     ORDER BY created_at DESC
+    LIMIT 6
 `,
 
 postsLiked:`
@@ -132,11 +147,15 @@ recentActivity:`
 `,
 
 getRecentActivities:`
-   SELECT *
+   SELECT 
+      user_id,
+      activity,
+      to_char(created_at, 'Month, DD')
    FROM 
       recent_activity
    WHERE
-      user_id = $1;
+      user_id = $1
+   ORDER BY created_at DESC
 `,
 
 getOnePost:`
@@ -144,9 +163,23 @@ getOnePost:`
    WHERE id = $1
 `,
 
+getAPost:`
+    SELECT 
+       id,
+       title,
+       post,
+       cover,
+       subtitle,
+       user_id,
+       to_char(created_at, 'Month, DD')
+    FROM 
+       posts
+    WHERE id = $1
+`,
+
 fetchOneUser:` 
     SELECT 
-      id, first_name, last_name, upload_photo
+       first_name, last_name, upload_photo
     FROM
       users
     WHERE 
@@ -169,12 +202,19 @@ getTopView:`
     LIMIT 5;
 `,
 
+getAllLikes:`
+    UPDATE posts 
+    SET post_likes = post_likes + 1
+    WHERE id = $1
+
+`,
+
 getMostLiked:`
    SELECT 
       *
    FROM 
-     likes
-   ORDER BY user_id DESC
+     posts
+   ORDER BY post_likes DESC
    LIMIT 5;
 `,
 
@@ -190,7 +230,6 @@ DELETE FROM posts
 WHERE id = $1 
 `,
 };
-
 
 
 export default postQueries;

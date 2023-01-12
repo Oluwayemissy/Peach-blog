@@ -4,6 +4,7 @@ import 'dotenv/config';
 import { db } from '../../config/db';
 import usersQueries from '../queries/users.queries';
 import { hash } from '../../lib/hash/helpers';
+import { cloudinary } from '../../config/cloudinary/cloudinary';
 import JWT_SIGN_OPTIONS from '../../lib/utils/jwt';
 
 
@@ -41,4 +42,19 @@ export const verifyResetToken = async (req, res, next)  => {
     });
 } 
 
+export const cloudImg = async (req, res, next) => {
+  let cover = req.files
+ 
+  const file = req.files.cover
+       
+  const cloudImage = await cloudinary.uploader.upload(file.tempFilePath, {
+           folder: "photos",
+           width: 300,
+           resource_type: "auto"
+  })
+  req.cover = cloudImage.secure_url
+  
+  console.log(cloudImage.secure_url)
+  return next();
+};
 

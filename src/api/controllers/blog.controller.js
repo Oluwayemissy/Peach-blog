@@ -1,25 +1,15 @@
 import postQueries from '../queries/post.queries'
 import { db } from '../../config/db';
 import { slugify } from '../../lib/hash/helpers';
-import { cloudinary } from '../../config/cloudinary/cloudinary';
+
 
 const addPost = async(req, res) => {
    
     try {
-       let { title, post, subtitle } = req.body
-       let {cover} = req.files
-       const file = req.files.cover
-
+       let { body: {title, post, subtitle}, cover } = req;
        const { user_id } = req.user
 
        let slug = slugify(title)
-
-       const cloudImage = await cloudinary.uploader.upload(file.tempFilePath, {
-           folder: "photos",
-           width: 300,
-           resource_type: "auto"
-       })
-       cover = cloudImage.secure_url
 
        const user = await db.any(postQueries.getUserById, [user_id])
 
@@ -40,12 +30,22 @@ const addPost = async(req, res) => {
 
 const getAllPosts = async(req, res) => {
     try {
-        const allPosts = await db.any(postQueries.getAllPosts)
-
+        const { search, page, perPage } = req.query;
+        const payload = search? `%${search}%`:undefined;
+        const offset = (page - 1) * perPage
+        const allPosts = await db.any(postQueries.getAllPosts, [payload, offset, perPage])
+        const [ count ] = await db.any(postQueries.getAllPostsCount, [payload])
+        console.log(allPosts);
         return res.status(200).json({
             status: 'successful',
             message: 'Posts fetched successfully',
-            data: allPosts
+            data: {
+                data: allPosts,
+                pageOptions: {
+                    total: +count.count,
+                    totalPages: Math.ceil(Number(count.count)/+perPage)
+                }
+            }
         })
     } catch (error) {
         console.log(error)
@@ -55,7 +55,10 @@ const getAllPosts = async(req, res) => {
 
 const getLatestPosts = async(req, res) => {
     try {
-        const latestPosts = await db.any(postQueries.getLatestPosts)
+        const { search, user_id } = req.query;
+        const payload = search? `%${search}%`:undefined
+
+        const latestPosts = await db.any(postQueries.getLatestPosts, [payload])
 
         return res.status(200).json({
             status: 'successful',
@@ -74,6 +77,7 @@ const likedPost = async(req, res) => {
 
     try {
         const like = await db.any(postQueries.postsLiked, [user_id, post_id])
+        await db.any(postQueries.getAllLikes, [post_id])
         return res.status(200).json({
             status: 'successful',
             message: 'Posts liked successfully',
@@ -168,6 +172,7 @@ const getProfile = async(req, res) => {
     }
 };
 
+
 const getOnePost = async (req, res) => {
     // let { id } = req.params
     try {
@@ -176,7 +181,7 @@ const getOnePost = async (req, res) => {
  
         console.log(req.user);
         const [ posts, user, likes, comments, reposts, ] = await Promise.all([
-            db.any(postQueries.getOnePost, [id]),
+            db.any(postQueries.getAPost, [id]),
             db.any(postQueries.fetchOneUser, [user_id]),
             db.any(postQueries.fetchAllLikes, [user_id]),
             db.any(postQueries.fetchAllComments, [user_id]),
@@ -202,7 +207,7 @@ const getOnePost = async (req, res) => {
     }
 };
 
-const getAllViews = async (req, res) => {
+const viewPost = async (req, res) => {
     try {
         let {id} = req.params
       const views = await db.oneOrNone(postQueries.getAllViews, [id]);
@@ -248,7 +253,7 @@ const getMostLiked = async (req, res) => {
 
 const editPost = async (req, res) => {
     let { id } = req.params;
-    let { title, post, subtitle, cover } = req.body;
+    let { body: {title, post, subtitle}, cover } = req;
     let slug = slugify(title)
     try {
         const postUpdated = await db.oneOrNone(postQueries.editPost, [title, post, subtitle, cover, slug, id])
@@ -296,7 +301,7 @@ export {
     recentActivity,
     getProfile,
     getOnePost,
-    getAllViews,
+    viewPost,
     getTopViews,
     getMostLiked,
     editPost,

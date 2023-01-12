@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import SG from '@sendgrid/mail';
-import * as Templates from '../lib/templates/forgotPassword'
+import * as Templates from '../lib/templates/sendEmail'
 
 
 export const MailService = (data) => {

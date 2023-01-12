@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { addPost, editPost, getAllPosts, getLatestPosts, getProfile, getAllViews, likedPost, postComment, postsReposted, getOnePost, deletePost, getTopViews } from "../controllers/blog.controller";
-import { verifyToken } from "../middlewares/auth.middleware";
+import { addPost, editPost, getAllPosts, getLatestPosts, getProfile, likedPost, postComment, postsReposted, getOnePost, deletePost, getTopViews, getMostLiked, viewPost } from "../controllers/blog.controller";
+import { verifyToken, cloudImg } from "../middlewares/auth.middleware";
 import model from '../middlewares/model.middleware';
 import * as Schema from '../../lib/schema/schema.blog';
 
@@ -11,7 +11,8 @@ const router = Router();
 router.post(
     '/add_post', 
     model(Schema.addPost, 'payload'),
-    verifyToken, 
+    verifyToken,
+    cloudImg, 
     addPost
 );
 
@@ -55,18 +56,21 @@ router.get(
     getOnePost
 );
 
-router.patch(
+router.put(
     '/edit_post/:id', 
     model(Schema.thePostId, 'params'),
-    verifyToken, 
+    verifyToken,
+    cloudImg, 
     editPost);
 
 router.get(
     '/views/:id',
     model(Schema.thePostId, 'params'),
-    getAllViews);
+    viewPost);
 
-router.get('/top_views', getTopViews );
+router.get('/top_views', getTopViews);
+
+router.get('/most_liked', getMostLiked)
 
 router.delete(
     '/delete_post/:id', 

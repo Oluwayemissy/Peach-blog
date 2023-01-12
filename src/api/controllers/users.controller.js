@@ -2,10 +2,11 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken'
 import usersQueries from "../queries/users.queries";
 import { db } from '../../config/db'
-import {  forgetPasswrd, checkCode } from '../../lib/templates/forgotPassword';
+import {  forgetPasswrd, checkCode, signUp } from '../../lib/templates/sendEmail';
 import { MailService } from '../../services/sendemail';
 import { generateCode } from '../../lib/hash/helpers';
 import { cloudinary } from '../../config/cloudinary/cloudinary';
+// import { JWT_SIGN_OPTIONS, JWT_TOKEN_EXPIRE } from '../../lib/utils/jwt';
 
 
 
@@ -23,13 +24,21 @@ const registerUsers = async (req, res) => {
         }
         password = bcrypt.hashSync(password, 10);
         
-        const users = await db.any(usersQueries.registerUsers, [first_name, last_name, email_address, password ])
-        delete users[0].password
+        const user = await db.any(usersQueries.registerUsers, [first_name, last_name, email_address, password ])
+        delete user[0].password
+
+        const signLink = `Congratulation!!! you have successfully signed up` 
+        const mailData = {
+            signLink,
+            first_name
+        }
+        const sign = signUp(mailData);
+        MailService({ email: email_address , template: sign})
         return res.status(200).json({
-            status: 'success',
-            message: 'user created successfully',
-            data: users
-        })
+            status: "success",
+            message: "sign up successful, a message has been sent to your email",
+            data: user
+        });
 
     } catch (error) {
         console.log(error)
@@ -109,12 +118,12 @@ const login = async (req, res) => {
             },
 
             process.env.JWT_SECRET_KEY,
-            // expiresIn: '1h'
+           { expiresIn:'1h'}
         );
         
         
         return res.status(200).json({
-            status: 'Success',
+            status: 'success',
             message: 'Logged In Successfully',
             data: {
                 user,
@@ -153,7 +162,6 @@ const forgotPassword = async(req, res) => {
             resetCode,
             name: existingEmail.first_name
         }
-        console.log(existingEmail.first_name)
         // sendMail.MailService(mailData);
         
         const forgotPassword = forgetPasswrd(mailData);
@@ -179,15 +187,11 @@ const verifyCode = async(req, res)=> {
         })
     } 
 
-    const token = jwt.sign({
-        email_address: user.email_address
-    },
+    const token = jwt.sign({email_address: user.email_address}, process.env.JWT_SECRET_KEY, {
+        expiresIn: "20m",
+    });
 
-    process.env.JWT_SECRET_KEY,
-    // JWT_TOKEN_EXPIRE
-   );
-    const resetLink = `${process.env.FRONTEND_URL}/reset_password?token=${token}` 
-    // console.log({resetLink});
+    const resetLink = `${process.env.FRONTEND_URL}/reset_password/token=${token}` 
     const mailData = {
         resetLink,
         name: user.first_name
@@ -218,7 +222,7 @@ const resetPassword = async(req, res) => {
             password, 
             email_address
         ]);
-       console.log(user)
+   
         return res.status(200).json({
             status: "success",
             message: "password reset successfully",
