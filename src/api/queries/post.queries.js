@@ -26,8 +26,7 @@ getAllPostsCount:
     `SELECT COUNT(id)
     FROM posts
     WHERE (title ILIKE $1 OR $1 IS NULL)
-    `,
-
+`,
 
 getUserById:`
     SELECT * FROM users
@@ -35,18 +34,14 @@ getUserById:`
 `,
  
 getLatestPosts:`
-    SELECT 
-       title,
-       post,
-       cover,
-       subtitle,
-       user_id,
-       to_char(created_at, 'Month, DD')
-    FROM 
-       posts
-    WHERE (title ILIKE $1 OR $1 IS NULL)
-    ORDER BY created_at DESC
-    LIMIT 6
+   SELECT 
+      title, subtitle,  cover, post, to_char(posts.created_at, 'Month, DD'), upload_photo, first_name, last_name,  post_likes, comment
+   FROM posts
+   LEFT JOIN users ON posts.user_id = users.id
+   LEFT JOIN comments ON posts.id = comments.post_id
+   GROUP BY title, subtitle, cover, posts.post, post_likes, posts.created_at, users.upload_photo, users.first_name, users.last_name, comments.comment
+   ORDER BY posts.created_at DESC
+   LIMIT 6
 `,
 
 postsLiked:`
@@ -71,20 +66,6 @@ postsReposted:`
          reposts (user_id, post_id)
     VALUES ($1, $2)
     RETURNING *
-`,
-
-getProfile:`
-    SELECT 
-       first_name, last_name, tagline, bio, posts.id, 
-       COUNT(likes), COUNT(comments), COUNT(reposts), COUNT(posts), json_agg(post)     
-   FROM 
-       users 
-    LEFT JOIN likes ON users.id = likes.user_id
-    LEFT JOIN posts ON users.id = posts.user_id
-    LEFT JOIN comments ON users.id = comments.user_id
-    LEFT JOIN reposts ON users.id = reposts.user_id
-    WHERE users.id = $1
-   GROUP BY posts.id, first_name, last_name, tagline, bio
 `,
 
 fetchAllUsers:` 

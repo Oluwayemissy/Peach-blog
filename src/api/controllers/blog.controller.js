@@ -8,6 +8,7 @@ const addPost = async(req, res) => {
     try {
        let { body: {title, post, subtitle}, cover } = req;
        const { user_id } = req.user
+       console.log({cover})
 
        let slug = slugify(title)
 
@@ -47,6 +48,7 @@ const getAllPosts = async(req, res) => {
                 }
             }
         })
+
     } catch (error) {
         console.log(error)
         return error;
@@ -55,7 +57,7 @@ const getAllPosts = async(req, res) => {
 
 const getLatestPosts = async(req, res) => {
     try {
-        const { search, user_id } = req.query;
+        const { search } = req.query;
         const payload = search? `%${search}%`:undefined
 
         const latestPosts = await db.any(postQueries.getLatestPosts, [payload])
@@ -172,9 +174,7 @@ const getProfile = async(req, res) => {
     }
 };
 
-
 const getOnePost = async (req, res) => {
-    // let { id } = req.params
     try {
         let { id } = req.params
         let { user_id } = req.user;

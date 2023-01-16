@@ -43,6 +43,7 @@ export const verifyResetToken = async (req, res, next)  => {
 } 
 
 export const cloudImg = async (req, res, next) => {
+  // console.log(req.body, req.files);
   let cover = req.files
  
   const file = req.files.cover
@@ -57,4 +58,5 @@ export const cloudImg = async (req, res, next) => {
   console.log(cloudImage.secure_url)
   return next();
 };
+
 
