@@ -42,6 +42,7 @@ const registerUsers = async (req, res) => {
 
     } catch (error) {
         console.log(error)
+        return error;
     }
 };
 
@@ -121,7 +122,6 @@ const login = async (req, res) => {
            { expiresIn:'1h'}
         );
         
-        
         return res.status(200).json({
             status: 'success',
             message: 'Logged In Successfully',
@@ -131,7 +131,6 @@ const login = async (req, res) => {
             }
         })
                 
-     
     } catch (err) {
         console.log(err)
         return err;
@@ -218,18 +217,22 @@ const resetPassword = async(req, res) => {
     if (!updateValues.length) return;
 
     password = bcrypt.hashSync(password, 10);
-        const user = await db.oneOrNone(usersQueries.updatePassword, [
-            password, 
-            email_address
-        ]);
-   
-        return res.status(200).json({
-            status: "success",
-            message: "password reset successfully",
-            data: user
-        });
-    } catch (error) {}
+    const user = await db.oneOrNone(usersQueries.updatePassword, [
+        password, 
+        email_address
+    ]);
+     
+    return res.status(200).json({
+        status: "success",
+        message: "password reset successfully",
+        data: user
+    });
+    } catch (error) {
+        console.log(error)
+        return error;
+    }
 };
+
 
 const deleteUser = async (req, res) => {
     try {

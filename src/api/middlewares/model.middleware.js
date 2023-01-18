@@ -18,6 +18,7 @@ const validateData = (schema, type) => async (req, res, next) => {
         })
       }
     } catch (error) {
+      console.log(error)
       return error;
     }
     return next();

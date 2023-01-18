@@ -1,5 +1,5 @@
 import { 
-    devENV, prodENV, testENV
+    devENV, testENV, prodENV
 }  from './env';
 
 const { NODE_ENV } = process.env;

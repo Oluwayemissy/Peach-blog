@@ -1,7 +1,7 @@
 import postQueries from '../queries/post.queries'
 import { db } from '../../config/db';
 import { slugify } from '../../lib/hash/helpers';
-
+import {logger} from '../../lib/utils/logger'
 
 const addPost = async(req, res) => {
    
@@ -17,12 +17,12 @@ const addPost = async(req, res) => {
        const blogPosts = await db.any(postQueries.createPost, [user_id, title, post, cover, subtitle, slug])
        await db.any(postQueries.recentActivity, [user_id, `${user[0].first_name},  created a post with title: ${title}` ])
        
+       logger.info('Post created sucessufully', 'controllers::blog.controller')
        return res.status(200).json({
           status: 'Successful',
           message:'Post created sucessufully',
           data: blogPosts
        });
-
     } catch (error) {
         console.log(error)
         return error;
