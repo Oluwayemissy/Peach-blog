@@ -21,7 +21,13 @@
     },
 
     "prod":{
-      "ENV": "PEACH_BLOG_PROD_DATABASE_URL"
+      "driver": "pg",
+      "user": {"ENV": "PEACH_BLOG_PROD_DATABASE_USER"},
+      "password": {"ENV": "PEACH_BLOG_PROD_DATABASE_PASSWORD"},
+      "host": {"ENV": "PEACH_BLOG_PROD_DATABASE_HOST"},
+      "database": {"ENV": "PEACH_BLOG_PROD_DATABASE_NAME"},
+      "port": {"ENV": "PEACH_BLOG_PROD_DATABASE_PORT"},
+      "max": {"ENV": "PEACH_BLOG_PROD_DATABASE_MAX_CONNECTIONS"}
   },
   "sql_file": true
 }
