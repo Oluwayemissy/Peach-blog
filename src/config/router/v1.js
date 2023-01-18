@@ -9,7 +9,6 @@ api.get('/', (req, res) => {
 });
 
 api.use('/users', users)
-
 api.use('/blogs', blogs)
 
 export default api;
