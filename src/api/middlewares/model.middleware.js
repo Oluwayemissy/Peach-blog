@@ -1,3 +1,5 @@
+import logger from "../../config/logger";
+
 const validateData = (schema, type) => async (req, res, next) => {
     try {
       const getType = {
@@ -18,7 +20,7 @@ const validateData = (schema, type) => async (req, res, next) => {
         })
       }
     } catch (error) {
-      console.log(error)
+      logger.error(error)
       return error;
     }
     return next();

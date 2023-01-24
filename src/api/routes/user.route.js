@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { registerUsers, login, updateUser, forgotPassword, resetPassword, verifyCode, getAllUsers, deleteUser} from "../controllers/users.controller";
-import { verifyResetToken } from "../middlewares/auth.middleware";
+import { verifyResetToken, checkExistingEmail } from "../middlewares/auth.middleware";
 import model from '../middlewares/model.middleware';
 import * as Schema from '../../lib/schema/schema.user';
 
@@ -10,6 +10,7 @@ const router = Router();
 router.post(
     '/signup', 
     model(Schema.registerUsers, 'payload'),
+    checkExistingEmail,
     registerUsers 
 );
 

@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 
 export const hash = async (password) => {
     const salt = await  bcrypt.genSalt(10);
-    console.log({ salt });
+   //  console.log({ salt });
    return bcrypt.hashSync(password, salt);
 };
 

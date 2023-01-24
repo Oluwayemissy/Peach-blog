@@ -6,6 +6,8 @@ import {  forgetPasswrd, checkCode, signUp } from '../../lib/templates/sendEmail
 import { MailService } from '../../services/sendemail';
 import { generateCode } from '../../lib/hash/helpers';
 import { cloudinary } from '../../config/cloudinary/cloudinary';
+import config from '../../config/setup';
+import logger from '../../config/logger';
 // import { JWT_SIGN_OPTIONS, JWT_TOKEN_EXPIRE } from '../../lib/utils/jwt';
 
 
@@ -13,24 +15,23 @@ import { cloudinary } from '../../config/cloudinary/cloudinary';
 const registerUsers = async (req, res) => {
     let { first_name, last_name, email_address, password } = req.body;
      
-    try {
-       
-        const existingEmail = await db.any(usersQueries.findByEmail, [email_address]);
-        if (existingEmail.length > 0) {
-            return res.status(400).json({
-                status: 'Failed',
-                message: 'Email already exists'
-            })
-        }
-        password = bcrypt.hashSync(password, 10);
-        
-        const user = await db.any(usersQueries.registerUsers, [first_name, last_name, email_address, password ])
-        delete user[0].password
+    try {      
+        password = bcrypt.hashSync(password, 10);    
+        const user = await db.one(usersQueries.registerUsers, [first_name, last_name, email_address, password ])
+        logger.info(`${user.id}  ::user registered successfully ::registerUsers.users.controller`)
+        delete user.password
 
         const signLink = `Congratulation!!! you have successfully signed up` 
         const mailData = {
             signLink,
             first_name
+        }
+        if (process.env.NODE_ENV === "test") {
+            return res.status(200).json({
+                status: "success",
+                message: "sign up successful, a message has been sent to your email",
+                data: user
+            });
         }
         const sign = signUp(mailData);
         MailService({ email: email_address , template: sign})
@@ -41,51 +42,8 @@ const registerUsers = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error)
+        logger.error(error)
         return error;
-    }
-};
-
-const getAllUsers = async (req, res) => {
-    try {
-        const users = await db.any(usersQueries.getAllUsers)
-        return res.status(200).json({
-            status: 'Success',
-            message: 'Users Fetched Successfully',
-            data: users
-        })
-    } catch (error) {
-        console.log(error)
-        return error;
-    }
-};
-
-const updateUser = async (req, res) => {
-    let { id } = req.params;
-    let { first_name, last_name, tagline, bio} = req.body;
-    let { upload_photo } = req.files
-    const file = req.files.upload_photo
-
-    const cloudImage = await cloudinary.uploader.upload(file.tempFilePath, {
-        folder: "images",
-        width: 300,
-        resource_type: "auto"
-    })
-    upload_photo = cloudImage.secure_url
-
-    try {
-        const user = await db.oneOrNone(usersQueries.updateUser, [first_name, last_name, tagline, bio, upload_photo, id])
-        return res.status(200).json({
-            status: 'Success',
-            message: 'User Profile Updated',
-            data: user
-        })
-        
-    } catch (error) {
-        if (error) {
-            console.log(error)
-            return error;
-        }
     }
 };
 
@@ -93,10 +51,10 @@ const updateUser = async (req, res) => {
 const login = async (req, res) => {
     let { email_address, password } = req.body;
     try {
-        const existingEmail = await db.oneOrNone(usersQueries.findByEmail, [email_address]);
+        // const existingEmail = await db.oneOrNone(usersQueries.findByEmail, [email_address]);
         const user = await db.oneOrNone(usersQueries.getUserByEmail, [email_address]);
-        
-        if (!existingEmail) {
+        logger.info(`${user.id}  ::user logeed in successfully  ::login.users.controller`)
+        if (!user) {
             return res.status(404).json({
                 status: 'Failed',
                 message: 'Invalid credentials'
@@ -104,7 +62,6 @@ const login = async (req, res) => {
         }
 
         const passwordMatch = bcrypt.compareSync(password, user.password);
-
         if (!passwordMatch) {
             return res.status(400).json({
                 status: 'Failed',
@@ -131,9 +88,9 @@ const login = async (req, res) => {
             }
         })
                 
-    } catch (err) {
-        console.log(err)
-        return err;
+    } catch (error) {
+        logger.error(error)
+        return error;
     }
 
 };
@@ -142,7 +99,7 @@ const login = async (req, res) => {
 const forgotPassword = async(req, res) => {
     try { 
         let { email_address } = req.body;
-        console.log({ email_address });
+       
         const existingEmail = await db.oneOrNone(usersQueries.existingEmail, [ email_address ]);
         if (!existingEmail) {
             return res.status(400).json({
@@ -154,7 +111,7 @@ const forgotPassword = async(req, res) => {
         let reset_password_code = generateCode()
 
         const user = await db.oneOrNone(usersQueries.updatePasswordToken, [ email_address, reset_password_code ]);
-
+        
         const resetCode = `Use the code to verify your code ${reset_password_code}`; 
        
         const mailData = { 
@@ -162,6 +119,13 @@ const forgotPassword = async(req, res) => {
             name: existingEmail.first_name
         }
         // sendMail.MailService(mailData);
+        if (process.env.NODE_ENV === "test") {
+            return res.status(200).json({
+                status: "success",
+                message: "a link to reset your password has been sent to your email",
+                data: reset_password_code
+            });
+        }
         
         const forgotPassword = forgetPasswrd(mailData);
         MailService({ email: email_address , template: forgotPassword })
@@ -170,6 +134,7 @@ const forgotPassword = async(req, res) => {
             message: "a link to reset your password has been sent to your email "
         });
     } catch (error) {
+        logger.error(error)
         return error;
     }
 };
@@ -179,7 +144,8 @@ const verifyCode = async(req, res)=> {
     try { 
         let { code, email_address } = req.body
         const user = await db.oneOrNone(usersQueries.existingEmail, [ email_address]);
-           
+        console.log(code, email_address, user, 'User')
+        logger.info(`${user.id}  ::user found successfully verifyCode.users.controller`)
     if(code !== user.reset_password_code){
         return res.status(400).json({
             message:"invalid code"
@@ -195,15 +161,24 @@ const verifyCode = async(req, res)=> {
         resetLink,
         name: user.first_name
     }
+
+    if (process.env.NODE_ENV === "test") {
+        return res.status(200).json({
+            status: "success",
+            message: "verification successful, a link to reset your password has been sent to your email",
+            data: token
+        });
+    }
     const checkCod = checkCode(mailData);
     MailService({ email: email_address , template: checkCod})
     return res.status(200).json({
         status: "success",
-        message: "verification successful, a link to reset your password has been sent to your email "
+        message: "verification successful, a link to reset your password has been sent to your email"
     });
-     } catch (error) {
+    } catch (error) {
+        logger.error(error)
         return error
-     }
+    }
     
 };
 
@@ -221,6 +196,7 @@ const resetPassword = async(req, res) => {
         password, 
         email_address
     ]);
+    logger.info(`${user.id}  ::user password reset successfully  ::resetPassword.users.controller`)
      
     return res.status(200).json({
         status: "success",
@@ -228,7 +204,51 @@ const resetPassword = async(req, res) => {
         data: user
     });
     } catch (error) {
-        console.log(error)
+        logger.error(error)
+        return error;
+    }
+};
+
+const updateUser = async (req, res) => {
+    let { id } = req.params;
+    let { first_name, last_name, tagline, bio} = req.body;
+    let { upload_photo } = req.files
+    const file = req.files.upload_photo
+
+    const cloudImage = await cloudinary.uploader.upload(file.tempFilePath, {
+        folder: "images",
+        width: 300,
+        resource_type: "auto"
+    })
+    upload_photo = cloudImage.secure_url
+
+    try {
+        const user = await db.oneOrNone(usersQueries.updateUser, [first_name, last_name, tagline, bio, upload_photo, id])
+        logger.info(`${user.id}  ::user updated successfully  ::updatedUser.users.controller`)
+        return res.status(200).json({
+            status: 'Success',
+            message: 'User Profile Updated',
+            data: user
+        })
+        
+    } catch (error) {
+        if (error) {
+            logger.error(error)
+            return error;
+        }
+    }
+};
+
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await db.any(usersQueries.getAllUsers)
+        return res.status(200).json({
+            status: 'Success',
+            message: 'Users Fetched Successfully',
+            data: users
+        })
+    } catch (error) {
+        logger.error(error)
         return error;
     }
 };
@@ -249,7 +269,7 @@ const deleteUser = async (req, res) => {
             message: `User with id:${id} deleted`,
         })
     } catch (error) {
-        console.log(error)
+        logger.error(error)
         return error;
     }
 };
@@ -258,11 +278,11 @@ const deleteUser = async (req, res) => {
 
 export {
     registerUsers,
-    getAllUsers,
-    updateUser,
     login,
     forgotPassword,
     verifyCode,
     resetPassword,
+    updateUser,
+    getAllUsers,
     deleteUser
 }

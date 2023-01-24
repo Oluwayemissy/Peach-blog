@@ -6,6 +6,8 @@ import usersQueries from '../queries/users.queries';
 import { hash } from '../../lib/hash/helpers';
 import { cloudinary } from '../../config/cloudinary/cloudinary';
 import JWT_SIGN_OPTIONS from '../../lib/utils/jwt';
+import config from '../../config/setup';
+import logger from '../../config/logger';
 
 
 export const verifyToken = async (req, res, next) => {
@@ -25,7 +27,25 @@ export const verifyToken = async (req, res, next) => {
     return res.status(403).json({message: 'Missing token'})
   }
   } catch (error) {
-    console.log(error)
+    logger.error(error)
+    return(error)
+  }
+};
+
+export const checkExistingEmail = async (req, res, next) => {
+  const {email_address} = req.body;
+  try {
+    const user = await db.oneOrNone(usersQueries.findByEmail, [email_address]);
+    logger.info('Email successfully found ::checkExistingEmail.auth.middleware')
+    if (user) {
+        return res.status(400).json({
+            status: 'Failed',
+            message: 'Email already exists'
+        })
+    }
+    return next()
+  } catch (error) {
+    logger.error(error)
     return(error)
   }
 };
@@ -46,7 +66,7 @@ export const verifyResetToken = async (req, res, next)  => {
         data: user
     });
   } catch (error) {
-    console.log(error)
+    logger.error(error)
     return(error)
   }
   

@@ -20,7 +20,7 @@
       "max": {"ENV": "PEACH_BLOG_TEST_DATABASE_MAX_CONNECTIONS"}
     },
 
-    "prod":{
+    "production":{
       "driver": "pg",
       "user": {"ENV": "PEACH_BLOG_PROD_DATABASE_USER"},
       "password": {"ENV": "PEACH_BLOG_PROD_DATABASE_PASSWORD"},

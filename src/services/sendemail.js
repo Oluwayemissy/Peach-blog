@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import SG from '@sendgrid/mail';
 import * as Templates from '../lib/templates/sendEmail'
+import config from '../config/setup';
 
 
 export const MailService = (data) => {

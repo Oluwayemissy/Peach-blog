@@ -50,7 +50,6 @@ postsLiked:`
       INTO 
          likes (user_id, post_id)
     VALUES ($1, $2)
-    RETURNING *
 `,
 
 postsComment:`
@@ -66,7 +65,6 @@ postsReposted:`
       INTO 
          reposts (user_id, post_id)
     VALUES ($1, $2)
-    RETURNING *
 `,
 
 fetchAllUsers:` 
@@ -168,7 +166,7 @@ fetchOneUser:`
    id = $1;
 `,
 
-getAllViews: `
+updateViewsCount: `
    UPDATE posts 
       SET count_views = count_views + 1
    WHERE id = $1

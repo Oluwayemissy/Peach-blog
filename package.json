@@ -4,7 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "db-migrate up && nodemon -r esm app.js"
+    "start": "db-migrate up && nodemon -r esm app.js",
+    "test": "NODE_ENV=test mocha --timeout 100000 --require @babel/register \"./test/**/*.js\" --exit",
+    "pretest": "cross-env NODE_ENV=test npm run migrate:reset:test && cross-env NODE_ENV=test npm run migrate:up:test",
+    "posttest": "cross-env NODE_ENV=test && cross-env NODE_ENV=test npm run migrate:reset:test",
+    "migrate:up": "db-migrate up --config database.json",
+    "migrate:down": "db-migrate down --config database.json",
+    "migrate:reset": "db-migrate reset --config database.json",
+    "migrate:create": "db-migrate create --config database.json",
+    "migrate:up:test": "db-migrate up --config database.json -e test",
+    "migrate:reset:test": "db-migrate reset --config database.json -e test"
   },
   "repository": {
     "type": "git",
@@ -18,12 +27,20 @@
   },
   "homepage": "https://github.com/Oluwayemissy/Peach-blog#readme",
   "dependencies": {
+    "@babel/cli": "^7.20.7",
+    "@babel/core": "^7.20.12",
+    "@babel/node": "^7.20.7",
+    "@babel/plugin-transform-runtime": "^7.19.6",
+    "@babel/preset-env": "^7.20.2",
+    "@babel/register": "^7.18.9",
+    "@babel/runtime": "^7.20.13",
     "@sendgrid/mail": "^7.7.0",
     "bcrypt": "^5.1.0",
     "bluebird": "^3.7.2",
     "body-parser": "^1.20.1",
     "cloudinary": "^1.32.0",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.7",
     "db-migrate": "^0.11.13",
     "db-migrate-pg": "^1.2.2",
     "dotenv": "^16.0.3",
@@ -33,9 +50,20 @@
     "helmet": "^6.0.1",
     "joi": "^17.7.0",
     "jsonwebtoken": "^8.5.1",
-    "pg-promise": "^10.15.4"
+    "pg-promise": "^10.15.4",
+    "sinon": "^15.0.1",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "assert": "^2.0.0",
+    "chai": "^4.3.7",
+    "chai-http": "^4.3.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.27.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "mocha": "^10.1.0",
+    "nodemon": "^2.0.20",
+    "supertest": "^6.3.3"
   }
 }
