@@ -6,14 +6,14 @@ import { newPost } from "../payloads/payload.blog";
 const {expect} = chai;
 chai.use(chaiHttp);
 describe('Blog Tests', () => {
+    console.log( process.env.PEACH_USER_ONE_TOKEN, 'the login token');
     it('Should create a post', (done) => {
         chai.request(app)
             .post('/api/v1/blogs/add_post')
-            .set('Authorization', process.env.PEACH_USER_ONE_TOKEN)
+            .set({Authorization: process.env.PEACH_USER_ONE_TOKEN})
             .attach('cover', path.resolve(__dirname, '../files/aiony-haust-3TLl_97HNJo-unsplash.jpg'))
             .send(newPost)
             .end((err, res) => {
-                console.log('Authorization',process.env.PEACH_USER_ONE_TOKEN, rea.body, 'create-post====>>')
                 expect(res.statusCode).to.equal(200);
                 expect(res.body).to.have.property('message');
                 expect(res.body).to.have.property('status');
