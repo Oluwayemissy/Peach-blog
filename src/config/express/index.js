@@ -7,14 +7,13 @@ const expressConfig = app => {
     logger.info('Application starting...');
     app.use(urlencoded({ extended: true}));
     app.use(cors({
-      origin: 'http://localhost:3000',
-      // methods: ["GET", "POST", "DELETE", "PATCH", "UPDATE", "OPTIONS", "PUT"]
+      origin: 'http://localhost:3000'
+    
     }));
     router(app);
   
-    app.get('*', (req, res) => {
-      console.log('welcome')
-      // res.send({ message: 'ROUTE not found' });
+    app.get('/', (req, res) => {
+      res.send({ message: 'welcome'});
     });
   
   };

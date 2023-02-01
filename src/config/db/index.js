@@ -3,15 +3,17 @@ import pgp from 'pg-promise';
 import promise from 'bluebird';
 // import logger from '../logger/logger';
 import logger from '../logger';
+import config from '../setup';
+
 
 const pg = pgp({ promiseLib: promise, noWarnings: true });
 
 const db =  pg({
-    host: process.env.PEACH_BLOG_PROD_DATABASE_HOST,
-    port: process.env.PEACH_BLOG_PROD_DATABASE_PORT,
-    database: process.env.PEACH_BLOG_PROD_DATABASE_NAME,
-    user: process.env.PEACH_BLOG_PROD_DATABASE_USER,
-    password: process.env.PEACH_BLOG_PROD_DATABASE_PASSWORD
+  host: config.DATABASE_HOST,
+  port: config.DATABASE_PORT,
+  database: config.DATABASE_NAME,
+  user: config.DATABASE_USER,
+  password: config.DATABASE_PASSWORD
 });
 
 const connection = (app, port) => new Promise(async resolve => {

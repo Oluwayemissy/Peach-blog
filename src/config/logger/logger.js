@@ -50,7 +50,7 @@ const testLogger = ()=> {
 
 
 export {
-    prodLogger,
-    testLogger,
-    devLogger
+  prodLogger,
+  testLogger,
+  devLogger
 }

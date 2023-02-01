@@ -73,18 +73,36 @@ export const verifyResetToken = async (req, res, next)  => {
 } 
 
 export const cloudImg = async (req, res, next) => {
-  let cover = req.files
- 
-  const file = req.files.cover
-       
-  const cloudImage = await cloudinary.uploader.upload(file.tempFilePath, {
-           folder: "photos",
-           width: 300,
-           resource_type: "auto"
-  })
-  req.cover = cloudImage.secure_url
   
-  console.log(cloudImage.secure_url)
+  const file = req.files ? req.files.cover :undefined
+  let cover;
+
+  console.log(file)  
+  if(config.NODE_ENV !== 'test'){
+    const cloudImage = await cloudinary.uploader.upload(file.tempFilePath, {
+      folder: "photos",
+      width: 300,
+      resource_type: "auto"
+    });
+    cover = cloudImage.secure_url
+  }
+  req.cover = cover
+  return next();
+};
+
+export const cloudPic = async (req, res, next) => {
+ 
+  const file = req.files ? req.files.upload_photo : undefined
+  let upload_photo;
+  if(config.NODE_ENV !== 'test'){
+    const cloudImage = await cloudinary.uploader.upload(file.tempFilePath, {
+      folder: "photos",
+      width: 300,
+      resource_type: "auto"
+    });
+    upload_photo = cloudImage.secure_url
+  }
+  req.upload_photo = upload_photo
   return next();
 };
 

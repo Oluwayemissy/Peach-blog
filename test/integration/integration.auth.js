@@ -1,10 +1,17 @@
-import chai from "chai";
+import chai, { request } from "chai";
 import chaiHttp from "chai-http";
 import app from "../../app";
-import {userOne, userOneMissingEmail, userOneMissingFirstName, userOneMissingLastName, userOneMissingPassword, userLogin, userLoginMissingEmail, userLoginMissingPassword, userForgotPassword} from "../payloads/payload.auth"
-
+import * as Payload from  "../payloads/payload.auth";
+import path from "path"
 const {expect} = chai;
+
+
+const { userOne, userOneMissingFirstName, userOneMissingLastName, 
+    userOneMissingPassword, userOneMissingEmail, userLogin, userLoginMissingPassword, 
+    userLoginMissingEmail, userForgotPassword, userUpdate, userUpdateMissingFirstName, 
+    userUpdateMissingLastName, userUpdateMissingBio, userUpdateMissingTagLine, userUpdateMissingUploadPhoto  } = Payload;
 chai.use(chaiHttp);
+
 describe('User Auth Tests', () => {
     it('Should create user one sucessfully', (done) => {
         chai.request(app)
@@ -24,7 +31,7 @@ describe('User Auth Tests', () => {
             });
     })
 
-    it('Should not create user if first_name is absent', (done) => {
+    it('Should return error if first_name does not exist', (done) => {
         chai.request(app)
             .post('/api/v1/users/signup')
             .send(userOneMissingFirstName)          
@@ -38,7 +45,7 @@ describe('User Auth Tests', () => {
             });
     })
 
-    it('Should not create user if last_name is absent', (done) => {
+    it('Should return error if last_name does not exist', (done) => {
         chai.request(app)
             .post('/api/v1/users/signup')
             .send(userOneMissingLastName)          
@@ -52,7 +59,7 @@ describe('User Auth Tests', () => {
             });
     })
 
-    it('Should not create user if password is absent', (done) => {
+    it('Should return error if password does not exist', (done) => {
         chai.request(app)
             .post('/api/v1/users/signup')
             .send(userOneMissingPassword)          
@@ -66,7 +73,7 @@ describe('User Auth Tests', () => {
             });
     })
 
-    it('Should not create user if email is absent', (done) => {
+    it('Should return error if email is does not exist', (done) => {
         chai.request(app)
             .post('/api/v1/users/signup')
             .send(userOneMissingEmail)          
@@ -83,7 +90,6 @@ describe('User Auth Tests', () => {
     it("Should login user", (done) => {
         chai.request(app)
             .post('/api/v1/users/login')
-            .set("Content-Type", "application/json")
             .send(userLogin)
             .end((err, res) => {
                 expect(res.statusCode).to.equal(200);
@@ -92,7 +98,7 @@ describe('User Auth Tests', () => {
                 expect(res.body).to.have.property('data');
                 expect(res.body.data.user.email_address).to.equal(userLogin.email_address);
                 expect(res.body.data.user.id).to.equal(process.env.PEACH_USER_ONE_USER_ID);
-                process.env.PEACH_USER_ONE_TOKEN = res.body.data.user.sessionToken;
+                process.env.PEACH_USER_ONE_TOKEN = res.body.data.token;
                 done();
             });
     });
@@ -100,7 +106,6 @@ describe('User Auth Tests', () => {
     it("Should not login user if password is absent", (done) => {
         chai.request(app)
             .post('/api/v1/users/login')
-            .set("Content-Type", "application/json")
             .send(userLoginMissingPassword)
             .end((err, res) => {
                 expect(res.statusCode).to.equal(422);
@@ -115,7 +120,6 @@ describe('User Auth Tests', () => {
     it("Should not login user if email is absent", (done) => {
         chai.request(app)
             .post('/api/v1/users/login')
-            .set("Content-Type", "application/json")
             .send(userLoginMissingEmail)
             .end((err, res) => {
                 expect(res.statusCode).to.equal(422);
@@ -130,7 +134,6 @@ describe('User Auth Tests', () => {
     it("should send forget password mail", (done) => {
         chai.request(app)
             .post('/api/v1/users/forgot_password')
-            .set("Content-Type", "application/json")
             .send(userForgotPassword)
             .end((err, res) => {
                 expect(res.statusCode).to.equal(200);
@@ -146,7 +149,6 @@ describe('User Auth Tests', () => {
     it("Should not send forgot password mail if email is absent", (done) => {
         chai.request(app)
             .post('/api/v1/users/forgot_password')
-            .set("Content-Type", "application/json")
             .send({})
             .end((err, res) => {
                 expect(res.statusCode).to.equal(422);
@@ -159,17 +161,13 @@ describe('User Auth Tests', () => {
     });
     
     it("should send verify code password mail", (done) => {
-        console.log('Here')
         chai.request(app)
-            .post('/api/v1/users/verify_code')
-            .set("Content-Type", "application/json")
+            .patch('/api/v1/users/verify_code')
             .send({
                 email_address: "holuwayemissy36@gmail.com",
                 code: process.env.PEACH_USER_ONE_PASSWORD_RESET_CODE
             })
             .end((err, res) => {
-                console.log('UKGejydwjghwd')
-                console.log(res.body)
                 expect(res.statusCode).to.equal(200);
                 expect(res.body).to.have.property('message');
                 expect(res.body).to.have.property('status');
@@ -179,5 +177,176 @@ describe('User Auth Tests', () => {
                 done();
             });
     });
+
+    it("Should not send verify code password mail if email is absent", (done) => {
+        chai.request(app)
+            .patch('/api/v1/users/verify_code')
+            .send({ code: process.env.PEACH_USER_ONE_PASSWORD_RESET_CODE })
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('email_address is required');
+                done();
+            });
+    }); 
+
+
+    it("Should not send verify code password mail if code is absent", (done) => {
+        chai.request(app)
+            .patch('/api/v1/users/verify_code')
+            .send({ email_address: "holuwayemissy36@gmail.com" })
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('code is required');
+                done();
+            });
+    }); 
+
+    it("Should reset users passsword", (done) => {
+        chai.request(app)
+            .patch('/api/v1/users/reset_password')
+            .send({ 
+                token: process.env.PEACH_USER_ONE_PASSWORD_RESET_TOKEN,
+                password: "Yemissy$6"
+            })
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(200);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body).to.have.property('data');
+                expect(res.body.message).to.equal('password updated successfully');
+                done();
+            });
+    })
+
+    it("Should not reset users password if password is absent", (done) => {
+        chai.request(app)
+            .patch('/api/v1/users/reset_password')
+            .send({ token: process.env.PEACH_USER_ONE_PASSWORD_RESET_TOKEN })
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('password is required');
+                done();
+            });
+    }); 
+
+    it("Should not reset users password if token is absent", (done) => {
+        chai.request(app)
+            .patch('/api/v1/users/reset_password')
+            .send({  password: "Yemissy$6" })
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('token is required');
+                done();
+            });
+    }); 
+    
+    it("Should update user profile", (done) => {
+        chai.request(app)
+            .patch(`/api/v1/users/update_user/${process.env.PEACH_USER_ONE_USER_ID}`)
+            .send(userUpdate)
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(200);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body).to.have.property('data');
+                expect(res.body.message).to.equal('User profile updated successfully')
+                done();
+            });
+    });
+    
+    
+
+    it('Should not update user if first_name is absent', (done) => {
+        chai.request(app)
+            .patch(`/api/v1/users/update_user/${process.env.PEACH_USER_ONE_USER_ID}`)
+            .send(userUpdateMissingFirstName)          
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('first_name is required');
+                done();
+            });
+    })
+
+    it('Should not update user if last_name is absent', (done) => {
+        chai.request(app)
+            .patch(`/api/v1/users/update_user/${process.env.PEACH_USER_ONE_USER_ID}`)
+            .send(userUpdateMissingLastName)          
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('last_name is required');
+                done();
+            });
+    })
+    
+    it('Should not update user if tagline is absent', (done) => {
+        chai.request(app)
+            .patch(`/api/v1/users/update_user/${process.env.PEACH_USER_ONE_USER_ID}`)
+            .send(userUpdateMissingTagLine)          
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('tagline is required');
+                done();
+            });
+    })
+
+    it('Should not update user if bio is absent', (done) => {
+        chai.request(app)
+            .patch(`/api/v1/users/update_user/${process.env.PEACH_USER_ONE_USER_ID}`)
+            .send(userUpdateMissingBio)          
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('bio is required');
+                done();
+            });
+    })
+
+    it("Should fetch all users", (done) => {
+        chai.request(app)
+            .get('/api/v1/users/users')
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(200);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body).to.have.property('data');
+                done();
+            });
+    });
+
+    it('Should delete a user', (done) => {
+        chai.request(app)
+            .delete(`/api/v1/users/delete_user/${process.env.PEACH_USER_ONE_USER_ID}`)         
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(200);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.message).to.equal(`User with id:${process.env.PEACH_USER_ONE_USER_ID} deleted`);
+                done();
+            });
+    })
+
 
 })

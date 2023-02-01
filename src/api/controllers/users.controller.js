@@ -6,7 +6,6 @@ import {  forgetPasswrd, checkCode, signUp } from '../../lib/templates/sendEmail
 import { MailService } from '../../services/sendemail';
 import { generateCode } from '../../lib/hash/helpers';
 import { cloudinary } from '../../config/cloudinary/cloudinary';
-import config from '../../config/setup';
 import logger from '../../config/logger';
 // import { JWT_SIGN_OPTIONS, JWT_TOKEN_EXPIRE } from '../../lib/utils/jwt';
 
@@ -53,7 +52,7 @@ const login = async (req, res) => {
     try {
         // const existingEmail = await db.oneOrNone(usersQueries.findByEmail, [email_address]);
         const user = await db.oneOrNone(usersQueries.getUserByEmail, [email_address]);
-        logger.info(`${user.id}  ::user logeed in successfully  ::login.users.controller`)
+        logger.info(`${user.id}  ::user logged in successfully  ::login.users.controller`)
         if (!user) {
             return res.status(404).json({
                 status: 'Failed',
@@ -76,7 +75,7 @@ const login = async (req, res) => {
             },
 
             process.env.JWT_SECRET_KEY,
-           { expiresIn:'1h'}
+           { expiresIn:'2h'}
         );
         
         return res.status(200).json({
@@ -185,9 +184,10 @@ const verifyCode = async(req, res)=> {
 const resetPassword = async(req, res) => {
     try {
         let { password, token,  } = req.body;
-    console.log(password, token)
+    // console.log(password, token)
     let updateValues = [];
     if (password) updateValues.push(password);
+    if(token) updateValues.push(token)
 
     if (!updateValues.length) return;
 
@@ -210,24 +210,25 @@ const resetPassword = async(req, res) => {
 };
 
 const updateUser = async (req, res) => {
-    let { id } = req.params;
-    let { first_name, last_name, tagline, bio} = req.body;
-    let { upload_photo } = req.files
-    const file = req.files.upload_photo
-
-    const cloudImage = await cloudinary.uploader.upload(file.tempFilePath, {
-        folder: "images",
-        width: 300,
-        resource_type: "auto"
-    })
-    upload_photo = cloudImage.secure_url
-
+ 
     try {
+        let { id } = req.params;
+        let { body: {first_name, last_name, tagline, bio}, upload_photo } = req;
+
         const user = await db.oneOrNone(usersQueries.updateUser, [first_name, last_name, tagline, bio, upload_photo, id])
-        logger.info(`${user.id}  ::user updated successfully  ::updatedUser.users.controller`)
+        
+        // if (process.env.NODE_ENV === "test") {
+        //     return res.status(200).json({
+        //         status: 'Success',
+        //         message: 'User profile updated successfully',
+        //         data: user
+        //     });
+        // }
+
+        logger.info(`${user.id}  ::user profile updated successfully  ::updatedUser.users.controller`)
         return res.status(200).json({
             status: 'Success',
-            message: 'User Profile Updated',
+            message: 'User profile updated successfully',
             data: user
         })
         
@@ -252,7 +253,6 @@ const getAllUsers = async (req, res) => {
         return error;
     }
 };
-
 
 const deleteUser = async (req, res) => {
     try {

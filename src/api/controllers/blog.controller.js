@@ -2,17 +2,20 @@ import postQueries from '../queries/post.queries'
 import { db } from '../../config/db';
 import { slugify } from '../../lib/hash/helpers';
 import logger from '../../config/logger';
+import { log } from 'winston';
 
 const addPost = async(req, res) => {
    
     try {
        let { body: {title, post, subtitle}, cover } = req;
+       console.log(req.user_id);
        const { user_id } = req.user
+
 
        let slug = slugify(title)
 
        const user = await db.oneOrNone(postQueries.getUserById, [user_id])
-       logger.info(`${user.id}  ::user found successfully addPost.blog.controller`)
+
        const blogPosts = await db.any(postQueries.createPost, [user_id, title, post, cover, subtitle, slug])
        await db.any(postQueries.recentActivity, [user_id, `${user.first_name},  created a post with title: ${title}` ])
        
@@ -30,10 +33,10 @@ const addPost = async(req, res) => {
 
 const getAllPosts = async(req, res) => {
     try {
-        const { search, page, perPage } = req.query;
+        const { search, page } = req.query;
         const payload = search? `%${search}%`:undefined;
-        const offset = (page - 1) * perPage
-        const allPosts = await db.any(postQueries.getAllPosts, [payload, offset, perPage])
+        const offset = (page - 1)
+        const allPosts = await db.any(postQueries.getAllPosts, [payload, offset])
         logger.info('Posts fetched successfully :::getAllPosts.blog.controller')
         const [ count ] = await db.any(postQueries.getAllPostsCount, [payload])
         logger.info(`${count.count}  ::Posts counted successfully ::getAllPosts.blog.controller`)
@@ -41,13 +44,12 @@ const getAllPosts = async(req, res) => {
         return res.status(200).json({
             status: 'successful',
             message: 'Posts fetched successfully',
-            data: {
-                data: allPosts,
+            data: allPosts,
                 pageOptions: {
                     total: +count.count,
-                    totalPages: Math.ceil(Number(count.count)/+perPage)
+                    totalPages: Math.ceil(Number(count.count))
                 }
-            }
+            
         })
 
     } catch (error) {
@@ -100,11 +102,11 @@ const postComment = async(req, res) => {
     let { comment } = req.body
 
     try {
-        const comments = await db.any(postQueries.postsComment, [ user_id, post_id, comment ])
-        logger.info('Comments made successfully :::postComment.blog.controller')
+        const comments = await db.any(postQueries.postsComment, [ user_id, post_id, comment])
+        logger.info('Comment made successfully :::postComment.blog.controller')
         return res.status(200).json({
             status: 'successful',
-            message: 'Comments made successfully',
+            message: 'Comment made successfully',
             data: comments
         })
     } catch (error) {
@@ -185,22 +187,22 @@ const getOnePost = async (req, res) => {
         let { id } = req.params
         let { user_id } = req.user;
  
-        const [ posts, user, likes, comments, reposts, ] = await Promise.all([
+        const [ posts, users, likes, comments, reposts ] = await Promise.all([
             db.any(postQueries.getAPost, [id]),
-            db.any(postQueries.fetchOneUser, [user_id]),
+            db.any(postQueries.fetchOneUser, user_id),
             db.any(postQueries.fetchAllLikes, [user_id]),
             db.any(postQueries.fetchAllComments, [user_id]),
             db.any(postQueries.fetchAllReposts, [user_id]),
-            db.oneOrNone(postQueries.updateViewsCount, [id]),
+            db.oneOrNone(postQueries.updateViewsCount, [id])
         ])
         
         logger.info(`${posts[0].id}  ::Post fetched successfully getOnePost.blog.controller`)
         const response = {
-            posts,
-            user,  
+            posts,  
+            users,
             likes, 
             comments, 
-            reposts,
+            reposts
         }
         return res.status(200).json({
             status: 'successful',
@@ -213,21 +215,6 @@ const getOnePost = async (req, res) => {
     }
 };
 
-// const viewPost = async (req, res) => {
-//     try {
-//         let {id} = req.params
-//       const views = await db.oneOrNone(postQueries.getAllViews, [id]);
-//       logger.info('Views fetched successfully :::viewPost.blog.controller')
-//       return res.status(200).json({
-//             status: 'successful',
-//             message: 'Views fetched successfully',
-//             data: views
-//       })
-//     } catch (error) {
-//       logger.error(error);
-//       return error;
-//     }
-// };
 
 const getTopViews = async (req, res) => {
     try {

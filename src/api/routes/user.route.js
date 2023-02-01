@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { registerUsers, login, updateUser, forgotPassword, resetPassword, verifyCode, getAllUsers, deleteUser} from "../controllers/users.controller";
-import { verifyResetToken, checkExistingEmail } from "../middlewares/auth.middleware";
+import { verifyResetToken, checkExistingEmail, cloudPic } from "../middlewares/auth.middleware";
 import model from '../middlewares/model.middleware';
 import * as Schema from '../../lib/schema/schema.user';
 
@@ -26,6 +26,7 @@ router.patch(
     '/update_user/:id', 
     model(Schema.userId, 'params'),
     model(Schema.updateUser, 'payload'),
+    cloudPic,
     updateUser 
 );
 

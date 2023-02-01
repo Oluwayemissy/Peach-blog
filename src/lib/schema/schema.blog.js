@@ -4,6 +4,7 @@ export const addPost = joi.object().keys({
     title: joi.string().required(),
     post: joi.string().required(),
     subtitle: joi.string().required(),
+    cover: joi.string().optional()
 });
 
 export const postId = joi.object().keys({

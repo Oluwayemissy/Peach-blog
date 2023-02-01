@@ -16,6 +16,7 @@ export const updateUser = joi.object().keys({
     last_name: joi.string().required(),  
     tagline: joi.string().required(), 
     bio: joi.string().required(), 
+    upload_photo: joi.string().optional()
 });
 
 export const login = joi.object().keys({

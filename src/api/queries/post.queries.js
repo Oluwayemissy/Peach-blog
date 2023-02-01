@@ -18,8 +18,6 @@ getAllPosts:`
    SELECT * 
    FROM posts
    WHERE (title ILIKE $1 OR $1 IS NULL)
-   OFFSET $2
-   LIMIT $3
 `,
 
 getAllPostsCount:` 
@@ -35,12 +33,12 @@ getUserById:`
  
 getLatestPosts:`
    SELECT 
-      title, subtitle,  cover, post, to_char(posts.created_at, 'Month, DD'), upload_photo, first_name, last_name,  post_likes, comment
+      posts.id, title, subtitle, cover, post, to_char(posts.created_at, 'Month, DD'), upload_photo, first_name, last_name,  post_likes, COUNT(comments.comment)
    FROM posts
    LEFT JOIN users ON posts.user_id = users.id
    LEFT JOIN comments ON posts.id = comments.post_id
    WHERE title ILIKE $1 OR $1 IS NULL
-   GROUP BY title, subtitle, cover, posts.post, post_likes, posts.created_at, users.upload_photo, users.first_name, users.last_name, comments.comment
+   GROUP BY posts.id, title, subtitle, cover, posts.post, post_likes, posts.created_at, users.upload_photo, users.first_name, users.last_name, comments.comment
    ORDER BY posts.created_at DESC
    LIMIT 6
 `,
@@ -144,17 +142,12 @@ getOnePost:`
 `,
 
 getAPost:`
-   SELECT 
-      id,
-      title,
-      post,
-      cover,
-      subtitle,
-      user_id,
-      to_char(created_at, 'Month, DD')
-   FROM 
-      posts
-   WHERE id = $1
+   SELECT
+      posts.id, title, subtitle, cover, post, to_char(posts.created_at, 'Month, DD'), users.id, upload_photo, first_name, last_name
+   FROM posts
+   LEFT JOIN users ON posts.user_id = users.id
+   WHERE posts.id = $1
+   GROUP BY posts.id, title, subtitle, cover, posts.post, post_likes, posts.created_at, users.id, users.upload_photo, users.first_name, users.last_name
 `,
 
 fetchOneUser:` 
@@ -174,12 +167,14 @@ updateViewsCount: `
 `,
 
 getTopView:`
-   SELECT  
-      *
-   FROM 
-   posts
+   SELECT 
+      posts.id, title, subtitle,  cover, post, to_char(posts.created_at, 'Month, DD'), upload_photo, first_name, last_name, count_views, post_likes, COUNT(comments.comment)
+   FROM posts
+   LEFT JOIN users ON posts.user_id = users.id
+   LEFT JOIN comments ON posts.id = comments.post_id
+   GROUP BY posts.id, title, subtitle, cover, posts.post, post_likes, posts.created_at, users.upload_photo, users.first_name, users.last_name, posts.count_views, comments.comment
    ORDER BY count_views DESC
-   LIMIT 5;
+   LIMIT 6;
 `,
 
 getAllLikes:`
@@ -191,9 +186,11 @@ getAllLikes:`
 
 getMostLiked:`
    SELECT 
-      *
-   FROM 
-     posts
+      posts.id, title, subtitle,  cover, post, to_char(posts.created_at, 'Month, DD'), upload_photo, first_name, last_name, count_views, post_likes, COUNT(comments.comment)
+   FROM posts
+   LEFT JOIN users ON posts.user_id = users.id
+   LEFT JOIN comments ON posts.id = comments.post_id
+   GROUP BY posts.id, title, subtitle, cover, posts.post, post_likes, posts.created_at, users.upload_photo, users.first_name, users.last_name, posts.count_views, comments.comment
    ORDER BY post_likes DESC
    LIMIT 5;
 `,
