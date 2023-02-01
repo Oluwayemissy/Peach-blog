@@ -8,7 +8,7 @@ const addPost = async(req, res) => {
    
     try {
        let { body: {title, post, subtitle}, cover } = req;
-       console.log(req.user_id);
+       console.log(req.user_id, 'gygvhbjnh');
        const { user_id } = req.user
 
 
