@@ -143,7 +143,6 @@ const verifyCode = async(req, res)=> {
     try { 
         let { code, email_address } = req.body
         const user = await db.oneOrNone(usersQueries.existingEmail, [ email_address]);
-        console.log(code, email_address, user, 'User')
         logger.info(`${user.id}  ::user found successfully verifyCode.users.controller`)
     if(code !== user.reset_password_code){
         return res.status(400).json({
@@ -184,7 +183,6 @@ const verifyCode = async(req, res)=> {
 const resetPassword = async(req, res) => {
     try {
         let { password, token,  } = req.body;
-    // console.log(password, token)
     let updateValues = [];
     if (password) updateValues.push(password);
     if(token) updateValues.push(token)
@@ -216,14 +214,6 @@ const updateUser = async (req, res) => {
         let { body: {first_name, last_name, tagline, bio}, upload_photo } = req;
 
         const user = await db.oneOrNone(usersQueries.updateUser, [first_name, last_name, tagline, bio, upload_photo, id])
-        
-        // if (process.env.NODE_ENV === "test") {
-        //     return res.status(200).json({
-        //         status: 'Success',
-        //         message: 'User profile updated successfully',
-        //         data: user
-        //     });
-        // }
 
         logger.info(`${user.id}  ::user profile updated successfully  ::updatedUser.users.controller`)
         return res.status(200).json({

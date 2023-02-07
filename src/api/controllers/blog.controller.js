@@ -11,15 +11,16 @@ const addPost = async(req, res) => {
        
        const { user_id } = req.user
 
-
        let slug = slugify(title)
 
        const user = await db.oneOrNone(postQueries.getUserById, [user_id])
 
-       const blogPosts = await db.any(postQueries.createPost, [user_id, title, post, cover, subtitle, slug])
-       await db.any(postQueries.recentActivity, [user_id, `${user.first_name},  created a post with title: ${title}` ])
-       
+       const blogPosts = await db.one(postQueries.createPost, [user_id, title, post, cover, subtitle, slug])
        logger.info('Post created successfully :::addPost.blog.controller')
+
+       await db.any(postQueries.recentActivity, [user_id, `${user.first_name},  created a post with title: ${title}` ])
+       logger.info(`${user_id} created a post with title - ${title} :::addPost.blog.controller`)
+       
        return res.status(200).json({
           status: 'Successful',
           message:'Post created sucessufully',
@@ -183,6 +184,7 @@ const getProfile = async(req, res) => {
 };
 
 const getOnePost = async (req, res) => {
+   
     try {
         let { id } = req.params
         let { user_id } = req.user;
@@ -204,6 +206,7 @@ const getOnePost = async (req, res) => {
             comments, 
             reposts
         }
+        
         return res.status(200).json({
             status: 'successful',
             message: 'Post fetched successfully',

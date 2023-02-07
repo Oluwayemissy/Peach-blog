@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prestart": "cross-env NODE_ENV=production npm run migrate:reset && cross-env NODE_ENV=production npm run migrate:up", 
+    "prestart": "cross-env NODE_ENV=production npm run migrate:up", 
     "start": "cross-env NODE_ENV=production babel-node app.js",
     "dev": "db-migrate up && nodemon -r esm app.js",
     "test": "NODE_ENV=test mocha --timeout 10000 --require @babel/register \"./test/**/*.js\" --exit",

@@ -58,8 +58,7 @@ export const verifyResetToken = async (req, res, next)  => {
     if(!user) {
      throw new Error('no client found')
     }
-   const updated = await db.oneOrNone(usersQueries.updatePassword, [  await hash(password), decode.email_address ]);
-   console.log({ updated });
+    await db.oneOrNone(usersQueries.updatePassword, [  await hash(password), decode.email_address ]);
     return res.status(200).json({
         status: "success",
         message: "password updated successfully",
@@ -76,8 +75,7 @@ export const cloudImg = async (req, res, next) => {
   
   const file = req.files ? req.files.cover :undefined
   let cover;
-
-  console.log(file)  
+  
   if(config.NODE_ENV !== 'test'){
     const cloudImage = await cloudinary.uploader.upload(file.tempFilePath, {
       folder: "photos",

@@ -25,5 +25,12 @@ describe('User Controller Unit Tests', () => {
             expect(res.code).to.equal(500);
             expect(res.error).to.equal('INTERNAL_SERVER_ERROR')
         })
+
+        it ('should call login user', async () => {
+            const req = { body: ''} ;
+            await UsersControllers.login(req, res, next);
+            expect(res.code).to.equal(500);
+            expect(res.error).to.equal('INTERNAL_SERVER_ERROR')
+        })
     })
 })
