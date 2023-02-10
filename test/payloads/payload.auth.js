@@ -24,10 +24,23 @@ export const userOneMissingFirstName = {
         email_address: "holuwayemissy36@gmail.com",
         password: "Oluwayemi$6"
 }
+
+export const userTwoMissingFirstName = {
+        last_name: "Godknows",
+        email_address: "tari27@gmail.com",
+        password: "Tariere$6"
+}
+
 export const userOneMissingLastName = {
         first_name: "Bibitayo",
         email_address: "holuwayemissy36@gmail.com",
         password: "Oluwayemi$6"
+}
+
+export const userTwoMissingLastName = {
+        first_name: "Tariere",
+        email_address: "tari27@gmail.com",
+        password: "Tariere$6"
 }
 
 export const userOneMissingPassword = {
@@ -36,10 +49,22 @@ export const userOneMissingPassword = {
         email_address: "holuwayemissy36@gmail.com",
 }
 
+export const userTwoMissingPassword = {
+        first_name: "Tariere",
+        last_name: "Godknows",
+        email_address: "tari27@gmail.com"
+}
+
 export const userOneMissingEmail = {
         first_name: "Bibitayo",
         last_name: "Ojo",
         password: "Oluwayemi$6"
+}
+
+export const userTwoMissingEmail = {
+        first_name: "Tariere",
+        last_name: "Godknows",
+        password: "Tariere$6"
 }
 
 export const userLogin = {

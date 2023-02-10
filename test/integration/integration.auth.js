@@ -5,12 +5,10 @@ import app from "../../app";
 import * as Payload from  "../payloads/payload.auth";
 import path from "path"
 
-const { userOne, userOneMissingFirstName, userOneMissingLastName, 
-    userOneMissingPassword, userOneMissingEmail, userLogin, userLoginMissingPassword, 
-    userLoginMissingEmail, userForgotPassword, userUpdate, userUpdateMissingFirstName, 
-    userUpdateMissingLastName, userUpdateMissingBio, userUpdateMissingTagLine } = Payload;
+const { userOne, userOneMissingFirstName, userOneMissingLastName, userOneMissingPassword, userOneMissingEmail, userLogin, userLoginMissingPassword, 
+    userLoginMissingEmail, userForgotPassword, userUpdate, userUpdateMissingFirstName, userUpdateMissingLastName, userUpdateMissingBio, userUpdateMissingTagLine } = Payload;
 
-const { userTwo, userTwoLogin, userThree, userThreeLogin} = Payload;
+const { userTwo, userTwoLogin, userThree, userThreeLogin, userTwoMissingFirstName, userTwoMissingLastName, userTwoMissingPassword, userTwoMissingEmail } = Payload;
 
 const {expect} = chai;
 chai.use(chaiHttp);
@@ -70,7 +68,7 @@ describe('User Auth Tests', () => {
             })
     })
 
-    it('Should return error if first_name does not exist', (done) => {
+    it('Should return error if first_name does not exist for user one', (done) => {
         chai.request(app)
             .post('/api/v1/users/signup')
             .send(userOneMissingFirstName)          
@@ -84,7 +82,20 @@ describe('User Auth Tests', () => {
             });
     })
 
-    it('Should return error if last_name does not exist', (done) => {
+    it('Should return error if first_name does not exist for user two', (done) => {
+        chai.request(app)
+        .post('/api/v1/users/signup')
+        .send(userTwoMissingFirstName)
+        .end((err, res) => {
+            expect(res.statusCode).to.equal(422);
+            expect(res.body).to.have.property('message');
+            expect(res.body.status).to.equal('error');
+            expect(res.body.message).to.equal('first_name is required');
+            done();
+        })
+    })
+
+    it('Should return error if last_name does not exist for user one', (done) => {
         chai.request(app)
             .post('/api/v1/users/signup')
             .send(userOneMissingLastName)          
@@ -98,7 +109,21 @@ describe('User Auth Tests', () => {
             });
     })
 
-    it('Should return error if password does not exist', (done) => {
+    it('Should return error if last_name does not exist for user two', (done) => {
+        chai.request(app)
+            .post('/api/v1/users/signup')
+            .send(userTwoMissingLastName)          
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('last_name is required');
+                done();
+            });
+    })
+
+    it('Should return error if password does not exist for user one', (done) => {
         chai.request(app)
             .post('/api/v1/users/signup')
             .send(userOneMissingPassword)          
@@ -112,7 +137,21 @@ describe('User Auth Tests', () => {
             });
     })
 
-    it('Should return error if email is does not exist', (done) => {
+    it('Should return error if password does not exist for user two', (done) => {
+        chai.request(app)
+            .post('/api/v1/users/signup')
+            .send(userTwoMissingPassword)          
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('password is required');
+                done();
+            });
+    })
+
+    it('Should return error if email is does not exist for user one', (done) => {
         chai.request(app)
             .post('/api/v1/users/signup')
             .send(userOneMissingEmail)          
@@ -126,7 +165,23 @@ describe('User Auth Tests', () => {
             });
     })
 
-    it("Should login user", (done) => {
+
+    it('Should return error if email is does not exist for user two', (done) => {
+        chai.request(app)
+            .post('/api/v1/users/signup')
+            .send(userTwoMissingEmail)          
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(422);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.status).to.equal('error');
+                expect(res.body.message).to.equal('email_address is required');
+                done();
+            });
+    })
+
+
+    it("Should login user one", (done) => {
         chai.request(app)
             .post('/api/v1/users/login')
             .send(userLogin)
@@ -409,17 +464,17 @@ describe('User Auth Tests', () => {
             });
     });
 
-    // it('Should delete a user', (done) => {
-    //     chai.request(app)
-    //         .delete(`/api/v1/users/delete_user/${process.env.PEACH_USER_ONE_USER_ID}`)         
-    //         .end((err, res) => {
-    //             expect(res.statusCode).to.equal(200);
-    //             expect(res.body).to.have.property('message');
-    //             expect(res.body).to.have.property('status');
-    //             expect(res.body.message).to.equal(`User with id:${process.env.PEACH_USER_ONE_USER_ID} deleted`);
-    //             done();
-    //         });
-    // })
+    it('Should delete user three', (done) => {
+        chai.request(app)
+            .delete(`/api/v1/users/delete_user/${process.env.PEACH_USER_THREE_USER_ID}`)         
+            .end((err, res) => {
+                expect(res.statusCode).to.equal(200);
+                expect(res.body).to.have.property('message');
+                expect(res.body).to.have.property('status');
+                expect(res.body.message).to.equal(`User with id:${process.env.PEACH_USER_THREE_USER_ID} deleted`);
+                done();
+            });
+    })
 
 
 })
