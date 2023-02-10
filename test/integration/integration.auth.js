@@ -475,6 +475,4 @@ describe('User Auth Tests', () => {
                 done();
             });
     })
-
-
 })
