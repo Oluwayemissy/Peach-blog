@@ -6,6 +6,8 @@ import {  forgetPasswrd, checkCode, signUp } from '../../lib/templates/sendEmail
 import { MailService } from '../../services/sendemail';
 import { generateCode } from '../../lib/hash/helpers';
 import { cloudinary } from '../../config/cloudinary/cloudinary';
+import enums from '../../lib/enums';
+import ApiResponse from '../../lib/http/lib.http.response'
 import logger from '../../config/logger';
 // import { JWT_SIGN_OPTIONS, JWT_TOKEN_EXPIRE } from '../../lib/utils/jwt';
 
@@ -34,6 +36,7 @@ const registerUsers = async (req, res) => {
         }
         const sign = signUp(mailData);
         MailService({ email: email_address , template: sign})
+        // return ApiResponse.success(res, enums.SIGNUP, enums.HTTP_OK, user )
         return res.status(200).json({
             status: "success",
             message: "sign up successful, a message has been sent to your email",
@@ -58,6 +61,7 @@ const login = async (req, res) => {
                 status: 'Failed',
                 message: 'Invalid credentials'
             })
+            // return ApiResponse.error(res, enums.INVALID_CREDENTIALS, enums.HTTP_NOT_FOUND)
         }
 
         const passwordMatch = bcrypt.compareSync(password, user.password);
@@ -66,6 +70,7 @@ const login = async (req, res) => {
                 status: 'Failed',
                 message: 'Invalid credentials'
             })
+            // return ApiResponse.error(res, enums.INVALID_CREDENTIALS, enums.HTTP_BAD_REQUEST)
         } 
 
         const sessionToken = jwt.sign(
@@ -86,6 +91,7 @@ const login = async (req, res) => {
                 token: sessionToken
             }
         })
+        // return ApiResponse.success(res, enums.LOGIN_SUCCESSFUL, enums.HTTP_OK, { user, token: sessionToken })
                 
     } catch (error) {
         logger.error(error)
@@ -105,6 +111,7 @@ const forgotPassword = async(req, res) => {
                 status: "failed",
                 message: "email does not exist"
             });
+            // return ApiResponse.error(res, enums.EMAIL_DOES_NOT_EXIST, enums.HTTP_BAD_REQUEST)
         }
        
         let reset_password_code = generateCode()
@@ -132,6 +139,7 @@ const forgotPassword = async(req, res) => {
             status: "success",
             message: "a link to reset your password has been sent to your email "
         });
+        // return ApiResponse.success(res, enums.FORGOT_PASSWORD_CODE, enums.HTTP_OK)
     } catch (error) {
         logger.error(error)
         return error;
@@ -146,8 +154,10 @@ const verifyCode = async(req, res)=> {
         logger.info(`${user.id}  ::user found successfully verifyCode.users.controller`)
     if(code !== user.reset_password_code){
         return res.status(400).json({
+            status: "failed",
             message:"invalid code"
         })
+        // return ApiResponse.error(res, enums.INVALID_CODE, enums.HTTP_BAD_REQUEST)
     } 
 
     const token = jwt.sign({email_address: user.email_address}, process.env.JWT_SECRET_KEY, {
@@ -173,6 +183,7 @@ const verifyCode = async(req, res)=> {
         status: "success",
         message: "verification successful, a link to reset your password has been sent to your email"
     });
+    // return ApiResponse.success(res, enums.VERIFICATION_TOKEN, enums.HTTP_OK)
     } catch (error) {
         logger.error(error)
         return error
@@ -201,6 +212,7 @@ const resetPassword = async(req, res) => {
         message: "password reset successfully",
         data: user
     });
+    // return ApiResponse.success(res, enums.RESET_PASSWORD, enums.HTTP_OK, user)
     } catch (error) {
         logger.error(error)
         return error;
@@ -221,6 +233,7 @@ const updateUser = async (req, res) => {
             message: 'User profile updated successfully',
             data: user
         })
+        // return ApiResponse.success(res, enums.UPDATE_USER, enums.HTTP_OK, user)
         
     } catch (error) {
         if (error) {
@@ -238,6 +251,7 @@ const getAllUsers = async (req, res) => {
             message: 'Users Fetched Successfully',
             data: users
         })
+        // return ApiResponse.success(res, enums.FETCH_USERS, enums.HTTP_OK, users)
     } catch (error) {
         logger.error(error)
         return error;

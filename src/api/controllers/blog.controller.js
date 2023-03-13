@@ -1,6 +1,8 @@
 import postQueries from '../queries/post.queries'
 import { db } from '../../config/db';
 import { slugify } from '../../lib/hash/helpers';
+import enums from '../../lib/enums';
+import ApiResponse from '../../lib/http/lib.http.response'
 import logger from '../../config/logger';
 import { log } from 'winston';
 
@@ -140,7 +142,7 @@ const recentActivity = async(req, res) => {
         logger.info('Post created successfully', 'controllers::blog.controller')
         return res.status(200).json({
             status: 'successful',
-            message: 'Posts liked successfully',
+            message: 'Recent Activity fetched successfully',
             data: activities
         })
     } catch (error) {

@@ -32,5 +32,7 @@ describe('User Controller Unit Tests', () => {
             expect(res.code).to.equal(500);
             expect(res.error).to.equal('INTERNAL_SERVER_ERROR')
         })
+
+        
     })
 })
