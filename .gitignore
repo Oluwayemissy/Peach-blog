@@ -2,3 +2,5 @@
 node_modules
 /info.log
 tmp
+.nyc_output
+coverage

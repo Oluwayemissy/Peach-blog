@@ -13,7 +13,8 @@ const db =  pg({
   port: config.DATABASE_PORT,
   database: config.DATABASE_NAME,
   user: config.DATABASE_USER,
-  password: config.DATABASE_PASSWORD
+  password: config.DATABASE_PASSWORD,
+  ssl: config.DEV_DATABASE_SSL
 });
 
 const connection = (app, port) => new Promise(async resolve => {

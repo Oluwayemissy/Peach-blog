@@ -197,7 +197,6 @@ describe('User Auth Tests', () => {
             });
     });
 
-
     it("Should login user Two", (done) => {
         chai.request(app)
             .post('/api/v1/users/login')
