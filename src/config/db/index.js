@@ -14,7 +14,7 @@ const db =  pg({
   database: config.DATABASE_NAME,
   user: config.DATABASE_USER,
   password: config.DATABASE_PASSWORD,
-  ssl: config.DEV_DATABASE_SSL || false
+  ssl: config.DATABASE_SSL || false
 });
 
 const connection = (app, port) => new Promise(async resolve => {

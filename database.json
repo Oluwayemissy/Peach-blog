@@ -7,7 +7,8 @@
       "host": {"ENV": "PEACH_BLOG_DEV_DATABASE_HOST"},
       "database": {"ENV": "PEACH_BLOG_DEV_DATABASE_NAME"},
       "port": {"ENV": "PEACH_BLOG_DEV_DATABASE_PORT"},
-      "max": {"ENV": "PEACH_BLOG_DEV_DATABASE_MAX_CONNECTIONS"}
+      "max": {"ENV": "PEACH_BLOG_DEV_DATABASE_MAX_CONNECTIONS"},
+      "ssl": {"ENV": "PEACH_BLOG_DEV_DATABASE_SSL"}
     },
 
     "test": {
